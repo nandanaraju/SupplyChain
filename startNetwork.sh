@@ -88,29 +88,29 @@ cd ..
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA
 sleep 1
 
-# echo "—---------------package chaincode—-------------"
+echo "—---------------package chaincode—-------------"
 
 
-# cp -r ../fabric-samples/asset-transfer-basic/chaincode-javascript ../Chaincode
+cp -r ../fabric-samples/asset-transfer-basic/chaincode-javascript ../Chaincode
 
-# peer lifecycle chaincode package basic.tar.gz --path ../Chaincode/chaincode-javascript/ --lang node --label basic_1.0
+peer lifecycle chaincode package basic.tar.gz --path ../Chaincode/chaincode-javascript/ --lang node --label basic_1.0
 
 
-# sleep 1
+sleep 1
 
-# export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid basic.tar.gz)
+export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid basic.tar.gz)
 
-# echo "—---------------install chaincode in manufacturer peer—-------------"
+echo "—---------------install chaincode in manufacturer peer—-------------"
 
-# peer lifecycle chaincode install basic.tar.gz
-# sleep 3
+peer lifecycle chaincode install basic.tar.gz
+sleep 3
 
-# peer lifecycle chaincode queryinstalled
+peer lifecycle chaincode queryinstalled
 
-# echo "—---------------Approve chaincode in manufacturer peer—-------------"
+echo "—---------------Approve chaincode in manufacturer peer—-------------"
 
-# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
-# sleep 1
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 1
 
 
 export CORE_PEER_LOCALMSPID=dealerMSP 
@@ -153,6 +153,18 @@ cd ..
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA
 sleep 1
 
+echo "—---------------install chaincode in dealer peer—-------------"
+
+peer lifecycle chaincode install basic.tar.gz
+sleep 3
+
+peer lifecycle chaincode queryinstalled
+
+echo "—---------------Approve chaincode in dealer peer—-------------"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 1
+
 
 export CORE_PEER_LOCALMSPID=buyerMSP 
 export CORE_PEER_ADDRESS=localhost:11051 
@@ -192,5 +204,28 @@ cd ..
 
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA
 sleep 1
+
+echo "—---------------install chaincode in buyer peer—-------------"
+
+peer lifecycle chaincode install basic.tar.gz
+sleep 3
+
+peer lifecycle chaincode queryinstalled
+
+echo "—---------------Approve chaincode in buyer peer—-------------"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 1
+
+
+echo "—---------------Commit chaincode in buyer peer—-------------"
+
+
+peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --output json
+
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --peerAddresses localhost:7051 --tlsRootCertFiles $manufacturer_PEER_TLSROOTCERT --peerAddresses localhost:9051 --tlsRootCertFiles $dealer_PEER_TLSROOTCERT
+sleep 1
+
+peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name basic --cafile $ORDERER_CA
 
 
