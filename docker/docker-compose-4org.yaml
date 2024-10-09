@@ -1,10 +1,13 @@
 version: '3.7'
 
 volumes:
-  orderer.example.com:
-  peer0.manufacturer.example.com:
-  peer0.dealer.example.com:
-  peer0.buyer.example.com:
+  orderer.agri.com:
+  peer0.manufacturer.agri.com:
+  peer0.verifier.agri.com:
+  peer0.dealer.agri.com:
+  peer1.dealer.agri.com:
+  peer0.buyer.agri.com:
+
 
 
 networks:
@@ -13,8 +16,8 @@ networks:
 
 services:
 
-  orderer.example.com:
-    container_name: orderer.example.com
+  orderer.agri.com:
+    container_name: orderer.agri.com
     image: hyperledger/fabric-orderer:latest
     labels:
       service: hyperledger-fabric
@@ -40,14 +43,14 @@ services:
       - ORDERER_ADMIN_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
       - ORDERER_ADMIN_TLS_CLIENTROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
       - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
-      - ORDERER_OPERATIONS_LISTENADDRESS=orderer.example.com:9443
+      - ORDERER_OPERATIONS_LISTENADDRESS=orderer.agri.com:9443
       - ORDERER_METRICS_PROVIDER=prometheus
     working_dir: /root
     command: orderer
     volumes:
-      - ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
-      - ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
-      - orderer.example.com:/var/hyperledger/production/orderer
+      - ../organizations/ordererOrganizations/agri.com/orderers/orderer.agri.com/msp:/var/hyperledger/orderer/msp
+      - ../organizations/ordererOrganizations/agri.com/orderers/orderer.agri.com/tls/:/var/hyperledger/orderer/tls
+      - orderer.agri.com:/var/hyperledger/production/orderer
     ports:
       - 7050:7050
       - 7053:7053
@@ -68,8 +71,8 @@ services:
     networks:
       - test
 
-  peer0.manufacturer.example.com:
-    container_name: peer0.manufacturer.example.com
+  peer0.manufacturer.agri.com:
+    container_name: peer0.manufacturer.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -84,16 +87,16 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.manufacturer.example.com
-      - CORE_PEER_ADDRESS=peer0.manufacturer.example.com:7051 
+      - CORE_PEER_ID=peer0.manufacturer.agri.com
+      - CORE_PEER_ADDRESS=peer0.manufacturer.agri.com:7051 
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.manufacturer.example.com:7052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.manufacturer.agri.com:7052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.manufacturer.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.manufacturer.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.manufacturer.agri.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.manufacturer.agri.com:7051
       - CORE_PEER_LOCALMSPID=manufacturerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.manufacturer.example.com:9444
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.manufacturer.agri.com:9444
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0manufacturer"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
@@ -103,15 +106,74 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ../organizations/peerOrganizations/manufacturer.example.com/peers/peer0.manufacturer.example.com:/etc/hyperledger/fabric
-      - peer0.manufacturer.example.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/manufacturer.agri.com/peers/peer0.manufacturer.agri.com:/etc/hyperledger/fabric
+      - peer0.manufacturer.agri.com:/var/hyperledger/production
     working_dir: /root
     command: peer node start
     ports:
       - 7051:7051
       - 9444:9444
     depends_on:
-      - couchdb0   #depend the couchdb0 before the peer0.manufacturer.example.com up
+      - couchdb0   
+    networks:
+      - test
+
+  couchdb2:
+    container_name: couchdb2
+    image: couchdb:3.3.2
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - "8984:5984"
+    networks:
+      - test
+
+  peer0.verifier.agri.com:
+    container_name: peer0.verifier.agri.com
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_test
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variables
+      - CORE_PEER_ID=peer0.verifier.agri.com
+      - CORE_PEER_ADDRESS=peer0.verifier.agri.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.verifier.agri.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.verifier.agri.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.verifier.agri.com:8051
+      - CORE_PEER_LOCALMSPID=verifierMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.verifier.agri.com:9447
+      - CORE_METRICS_PROVIDER=prometheus
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0verifier"}
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../organizations/peerOrganizations/verifier.agri.com/peers/peer0.verifier.agri.com:/etc/hyperledger/fabric
+      - peer0.verifier.agri.com:/var/hyperledger/production
+    depends_on:
+      - couchdb2
+    working_dir: /root
+    command: peer node start
+    ports:
+      - 8051:8051
+      - 9447:9447
     networks:
       - test
 
@@ -128,8 +190,8 @@ services:
     networks:
       - test
 
-  peer0.dealer.example.com:
-    container_name: peer0.dealer.example.com
+  peer0.dealer.agri.com:
+    container_name: peer0.dealer.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -144,16 +206,16 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.dealer.example.com
-      - CORE_PEER_ADDRESS=peer0.dealer.example.com:9051
+      - CORE_PEER_ID=peer0.dealer.agri.com
+      - CORE_PEER_ADDRESS=peer0.dealer.agri.com:9051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.dealer.example.com:9052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.dealer.agri.com:9052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dealer.example.com:9051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dealer.example.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dealer.agri.com:9051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dealer.agri.com:9051
       - CORE_PEER_LOCALMSPID=dealerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.dealer.example.com:9445
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.dealer.agri.com:9445
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0dealer"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
@@ -163,8 +225,8 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ../organizations/peerOrganizations/dealer.example.com/peers/peer0.dealer.example.com:/etc/hyperledger/fabric
-      - peer0.dealer.example.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/dealer.agri.com/peers/peer0.dealer.agri.com:/etc/hyperledger/fabric
+      - peer0.dealer.agri.com:/var/hyperledger/production
     working_dir: /root
     command: peer node start
     ports:
@@ -172,6 +234,60 @@ services:
       - 9445:9445
     depends_on:
       - couchdb1
+    networks:
+      - test
+
+  couchdb4:
+    container_name: couchdb4
+    image: couchdb:3.3.2
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - "5986:5984"
+    networks:
+      - test
+
+  peer1.dealer.agri.com:  # Added peer1 for dealer organization
+    container_name: peer1.dealer.agri.com
+    image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_test
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_PROFILE_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Peer specific variables
+      - CORE_PEER_ID=peer1.dealer.agri.com
+      - CORE_PEER_ADDRESS=peer1.dealer.agri.com:9053
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9053
+      - CORE_PEER_CHAINCODEADDRESS=peer1.dealer.agri.com:9054
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9054
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dealer.agri.com:9053
+      - CORE_PEER_LOCALMSPID=dealerMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.dealer.agri.com:9445
+      - CORE_METRICS_PROVIDER=prometheus
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb4:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../organizations/peerOrganizations/dealer.agri.com/peers/peer1.dealer.agri.com:/etc/hyperledger/fabric
+      - peer1.dealer.agri.com:/var/hyperledger/production
+    depends_on:
+      - couchdb4
+    ports:
+      - 9053:9053
+      - 9441:9441
     networks:
       - test
 
@@ -188,8 +304,8 @@ services:
     networks:
       - test
 
-  peer0.buyer.example.com:
-    container_name: peer0.buyer.example.com
+  peer0.buyer.agri.com:
+    container_name: peer0.buyer.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -206,16 +322,16 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.buyer.example.com
-      - CORE_PEER_ADDRESS=peer0.buyer.example.com:11051
+      - CORE_PEER_ID=peer0.buyer.agri.com
+      - CORE_PEER_ADDRESS=peer0.buyer.agri.com:11051
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
       - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.buyer.example.com:11052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.buyer.agri.com:11052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.buyer.example.com:11051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.buyer.example.com:11051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.buyer.agri.com:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.buyer.agri.com:11051
       - CORE_PEER_LOCALMSPID=buyerMSP
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.buyer.example.com:9446
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.buyer.agri.com:9446
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0buyer"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s  
@@ -227,8 +343,8 @@ services:
       - couchdb3    
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock      
-      - ../organizations/peerOrganizations/buyer.example.com/peers/peer0.buyer.example.com:/etc/hyperledger/fabric        
-      - peer0.buyer.example.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/buyer.agri.com/peers/peer0.buyer.agri.com:/etc/hyperledger/fabric        
+      - peer0.buyer.agri.com:/var/hyperledger/production
     working_dir: /root
     command: peer node start
     ports:
@@ -255,8 +371,8 @@ services:
       - /var/run/docker.sock:/host/var/run/docker.sock
       - ../organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
     depends_on:
-      - peer0.manufacturer.example.com
-      - peer0.dealer.example.com
-      - peer0.buyer.example.com
+      - peer0.manufacturer.agri.com
+      - peer0.dealer.agri.com
+      - peer0.buyer.agri.com
     networks:
       - test

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker compose -f docker/docker-compose-2org.yaml down
+docker compose -f docker/docker-compose-4org.yaml down
 sleep 2
 
 docker compose -f docker/docker-compose-ca.yaml down

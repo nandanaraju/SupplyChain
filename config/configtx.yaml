@@ -2,7 +2,7 @@ Organizations:
   - &OrdererOrg
     Name: OrdererOrg
     ID: OrdererMSP
-    MSPDir: ../organizations/ordererOrganizations/example.com/msp
+    MSPDir: ../organizations/ordererOrganizations/agri.com/msp
     Policies:
       Readers:
         Type: Signature
@@ -14,11 +14,11 @@ Organizations:
         Type: Signature
         Rule: "OR('OrdererMSP.admin')"
     OrdererEndpoints:
-      - orderer.example.com:7050
+      - orderer.agri.com:7050
   - &manufacturer
     Name: manufacturerMSP
     ID: manufacturerMSP
-    MSPDir: ../organizations/peerOrganizations/manufacturer.example.com/msp
+    MSPDir: ../organizations/peerOrganizations/manufacturer.agri.com/msp
     Policies:
       Readers:
         Type: Signature
@@ -32,10 +32,27 @@ Organizations:
       Endorsement:
         Type: Signature
         Rule: "OR('manufacturerMSP.peer')"
+  - &verifier
+    Name: verifierMSP
+    ID: verifierMSP
+    MSPDir: ../organizations/peerOrganizations/verifier.agri.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('verifierMSP.admin', 'verifierMSP.peer', 'verifierMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('verifierMSP.admin', 'verifierMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('verifierMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('verifierMSP.peer')"
   - &dealer
     Name: dealerMSP
     ID: dealerMSP
-    MSPDir: ../organizations/peerOrganizations/dealer.example.com/msp
+    MSPDir: ../organizations/peerOrganizations/dealer.agri.com/msp
     Policies:
       Readers:
         Type: Signature
@@ -52,7 +69,7 @@ Organizations:
   - &buyer
     Name: buyerMSP
     ID: buyerMSP
-    MSPDir: ../organizations/peerOrganizations/buyer.example.com/msp
+    MSPDir: ../organizations/peerOrganizations/buyer.agri.com/msp
     Policies:
       Readers:
         Type: Signature
@@ -99,7 +116,7 @@ Application: &ApplicationDefaults
 
 Orderer: &OrdererDefaults
   Addresses:
-    - orderer.example.com:7050
+    - orderer.agri.com:7050
   BatchTimeout: 2s
   BatchSize:
     MaxMessageCount: 10
@@ -142,10 +159,10 @@ Profiles:
       OrdererType: etcdraft
       EtcdRaft:
         Consenters:
-          - Host: orderer.example.com
+          - Host: orderer.agri.com
             Port: 7050
-            ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-            ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+            ClientTLSCert: ../organizations/ordererOrganizations/agri.com/orderers/orderer.agri.com/tls/server.crt
+            ServerTLSCert: ../organizations/ordererOrganizations/agri.com/orderers/orderer.agri.com/tls/server.crt
       Organizations:
         - *OrdererOrg
       Capabilities: *OrdererCapabilities
@@ -153,6 +170,7 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *manufacturer
+        - *verifier
         - *dealer
         - *buyer
       Capabilities: *ApplicationCapabilities
