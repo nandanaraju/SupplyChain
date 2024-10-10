@@ -22,7 +22,7 @@ echo "-------------Generate the genesis block—-------------------------------"
 
 export FABRIC_CFG_PATH=${PWD}/config
 
-export CHANNEL_NAME=mychannel
+export CHANNEL_NAME=agrichannel
 
 configtxgen -profile ChannelUsingRaft -outputBlock ${PWD}/channel-artifacts/${CHANNEL_NAME}.block -channelID $CHANNEL_NAME
 
@@ -199,6 +199,11 @@ peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c 
 sleep 2
 
 echo "—---------------Join dealer peer1 to the channel—-------------"
+
+export CORE_PEER_LOCALMSPID=dealerMSP 
+export CORE_PEER_ADDRESS=localhost:9053
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/dealer.agri.com/peers/peer1.dealer.agri.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/dealer.agri.com/users/Admin@dealer.agri.com/msp
 
 echo ${FABRIC_CFG_PATH}
 sleep 2

@@ -372,7 +372,9 @@ services:
       - ../organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
     depends_on:
       - peer0.manufacturer.agri.com
+      - peer0.verifier.agri.com
       - peer0.dealer.agri.com
+      - peer1.dealer.agri.com
       - peer0.buyer.agri.com
     networks:
       - test
