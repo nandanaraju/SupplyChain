@@ -32,57 +32,57 @@ Organizations:
       Endorsement:
         Type: Signature
         Rule: "OR('manufacturerMSP.peer')"
-  - &verifier
-    Name: verifierMSP
-    ID: verifierMSP
-    MSPDir: ../organizations/peerOrganizations/verifier.agri.com/msp
+  - &distributer
+    Name: distributerMSP
+    ID: distributerMSP
+    MSPDir: ../organizations/peerOrganizations/distributer.agri.com/msp
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('verifierMSP.admin', 'verifierMSP.peer', 'verifierMSP.client')"
+        Rule: "OR('distributerMSP.admin', 'distributerMSP.peer', 'distributerMSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('verifierMSP.admin', 'verifierMSP.client')"
+        Rule: "OR('distributerMSP.admin', 'distributerMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('verifierMSP.admin')"
+        Rule: "OR('distributerMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('verifierMSP.peer')"
-  - &dealer
-    Name: dealerMSP
-    ID: dealerMSP
-    MSPDir: ../organizations/peerOrganizations/dealer.agri.com/msp
+        Rule: "OR('distributerMSP.peer')"
+  - &market1
+    Name: market1MSP
+    ID: market1MSP
+    MSPDir: ../organizations/peerOrganizations/market1.agri.com/msp
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('dealerMSP.admin', 'dealerMSP.peer', 'dealerMSP.client')"
+        Rule: "OR('market1MSP.admin', 'market1MSP.peer', 'market1MSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('dealerMSP.admin', 'dealerMSP.client')"
+        Rule: "OR('market1MSP.admin', 'market1MSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('dealerMSP.admin')"
+        Rule: "OR('market1MSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('dealerMSP.peer')"
-  - &buyer
-    Name: buyerMSP
-    ID: buyerMSP
-    MSPDir: ../organizations/peerOrganizations/buyer.agri.com/msp
+        Rule: "OR('market1MSP.peer')"
+  - &market2
+    Name: market2MSP
+    ID: market2MSP
+    MSPDir: ../organizations/peerOrganizations/market2.agri.com/msp
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('buyerMSP.admin', 'buyerMSP.peer', 'buyerMSP.client')"
+        Rule: "OR('market2MSP.admin', 'market2MSP.peer', 'market2MSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('buyerMSP.admin', 'buyerMSP.client')"
+        Rule: "OR('market2MSP.admin', 'market2MSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('buyerMSP.admin')"
+        Rule: "OR('market2MSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('buyerMSP.peer')"
+        Rule: "OR('market2MSP.peer')"
 
 
 Capabilities:  
@@ -170,7 +170,7 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *manufacturer
-        - *verifier
-        - *dealer
-        - *buyer
+        - *market1
+        - *distributer
+        - *market2
       Capabilities: *ApplicationCapabilities

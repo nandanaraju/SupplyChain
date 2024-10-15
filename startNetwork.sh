@@ -41,9 +41,9 @@ sleep 2
 
 export FABRIC_CFG_PATH=${PWD}/peercfg
 export manufacturer_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/manufacturer.agri.com/peers/peer0.manufacturer.agri.com/tls/ca.crt
-export verifier_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/verifier.agri.com/peers/peer0.verifier.agri.com/tls/ca.crt
-export dealer_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/dealer.agri.com/peers/peer0.dealer.agri.com/tls/ca.crt
-export buyer_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/buyer.agri.com/peers/peer0.buyer.agri.com/tls/ca.crt
+export distributer_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/distributer.agri.com/peers/peer0.distributer.agri.com/tls/ca.crt
+export market2_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/market2.agri.com/peers/peer0.market2.agri.com/tls/ca.crt
+export market1_PEER_TLSROOTCERT=${PWD}/organizations/peerOrganizations/market1.agri.com/peers/peer0.market1.agri.com/tls/ca.crt
 
 
 export CORE_PEER_TLS_ENABLED=true
@@ -115,19 +115,89 @@ sleep 1
 # peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
 sleep 1
 
-export CORE_PEER_LOCALMSPID=verifierMSP
-export CORE_PEER_TLS_ENABLED=true
-export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/verifier.agri.com/peers/peer0.verifier.agri.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/verifier.agri.com/users/Admin@verifier.agri.com/msp
-export CORE_PEER_ADDRESS=localhost:8051
 
-echo "—---------------Join verifier peer0 to the channel—-------------"
+
+
+export CORE_PEER_LOCALMSPID=distributerMSP 
+export CORE_PEER_ADDRESS=localhost:9051 
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/distributer.agri.com/peers/peer0.distributer.agri.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/distributer.agri.com/users/Admin@distributer.agri.com/msp
+
+echo "—---------------Join distributer peer0 to the channel—-------------"
 
 peer channel join -b ${PWD}/channel-artifacts/$CHANNEL_NAME.block
 sleep 1
 peer channel list
 
-echo "—-------------verifier anchor peer update—-----------"
+echo "—-------------distributer anchor peer update—-----------"
+
+# peer channel join -b ${PWD}/channel-artifacts/$CHANNEL_NAME.block --tls --cafile $ORDERER_CA
+
+peer channel fetch config ${PWD}/channel-artifacts/config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA
+sleep 1
+
+cd channel-artifacts
+
+configtxlator proto_decode --input config_block.pb --type common.Block --output config_block.json
+jq '.data.data[0].payload.data.config' config_block.json > config.json
+
+cp config.json config_copy.json
+
+jq '.channel_group.groups.Application.groups.distributerMSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.distributer.agri.com","port": 9051}]},"version": "0"}}' config_copy.json > modified_config.json
+
+configtxlator proto_encode --input config.json --type common.Config --output config.pb
+configtxlator proto_encode --input modified_config.json --type common.Config --output modified_config.pb
+configtxlator compute_update --channel_id ${CHANNEL_NAME} --original config.pb --updated modified_config.pb --output config_update.pb
+
+configtxlator proto_decode --input config_update.pb --type common.ConfigUpdate --output config_update.json
+echo '{"payload":{"header":{"channel_header":{"channel_id":"'$CHANNEL_NAME'", "type":2}},"data":{"config_update":'$(cat config_update.json)'}}}' | jq . > config_update_in_envelope.json
+configtxlator proto_encode --input config_update_in_envelope.json --type common.Envelope --output config_update_in_envelope.pb
+
+cd ..
+
+peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
+sleep 2
+
+echo "—---------------Join distributer peer1 to the channel—-------------"
+
+export CORE_PEER_LOCALMSPID=distributerMSP 
+export CORE_PEER_ADDRESS=localhost:9053
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/distributer.agri.com/peers/peer1.distributer.agri.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/distributer.agri.com/users/Admin@distributer.agri.com/msp
+
+echo ${FABRIC_CFG_PATH}
+sleep 2
+peer channel join -b ${PWD}/channel-artifacts/${CHANNEL_NAME}.block
+sleep 3
+
+echo "-----channel List----"
+peer channel list
+
+# echo "—---------------install chaincode in distributer peer—-------------"
+
+# peer lifecycle chaincode install basic.tar.gz
+# sleep 3
+
+# peer lifecycle chaincode queryinstalled
+
+# echo "—---------------Approve chaincode in distributer peer—-------------"
+
+# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 1
+
+export CORE_PEER_LOCALMSPID=market1MSP
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/market1.agri.com/peers/peer0.market1.agri.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/market1.agri.com/users/Admin@market1.agri.com/msp
+export CORE_PEER_ADDRESS=localhost:8051
+
+echo "—---------------Join market1 peer0 to the channel—-------------"
+
+peer channel join -b ${PWD}/channel-artifacts/$CHANNEL_NAME.block
+sleep 1
+peer channel list
+
+echo "—-------------market1 anchor peer update—-----------"
 
 
 peer channel fetch config ${PWD}/channel-artifacts/config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA
@@ -140,7 +210,7 @@ jq '.data.data[0].payload.data.config' config_block.json > config.json
 
 cp config.json config_copy.json
 
-jq '.channel_group.groups.Application.groups.verifierMSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.verifier.agri.com","port": 8051}]},"version": "0"}}' config_copy.json > modified_config.json
+jq '.channel_group.groups.Application.groups.market1MSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.market1.agri.com","port": 8051}]},"version": "0"}}' config_copy.json > modified_config.json
 
 configtxlator proto_encode --input config.json --type common.Config --output config.pb
 configtxlator proto_encode --input modified_config.json --type common.Config --output modified_config.pb
@@ -158,86 +228,18 @@ sleep 1
 
 
 
-export CORE_PEER_LOCALMSPID=dealerMSP 
-export CORE_PEER_ADDRESS=localhost:9051 
-export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/dealer.agri.com/peers/peer0.dealer.agri.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/dealer.agri.com/users/Admin@dealer.agri.com/msp
-
-echo "—---------------Join dealer peer0 to the channel—-------------"
-
-peer channel join -b ${PWD}/channel-artifacts/$CHANNEL_NAME.block
-sleep 1
-peer channel list
-
-echo "—-------------dealer anchor peer update—-----------"
-
-# peer channel join -b ${PWD}/channel-artifacts/$CHANNEL_NAME.block --tls --cafile $ORDERER_CA
-
-peer channel fetch config ${PWD}/channel-artifacts/config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA
-sleep 1
-
-cd channel-artifacts
-
-configtxlator proto_decode --input config_block.pb --type common.Block --output config_block.json
-jq '.data.data[0].payload.data.config' config_block.json > config.json
-
-cp config.json config_copy.json
-
-jq '.channel_group.groups.Application.groups.dealerMSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.dealer.agri.com","port": 9051}]},"version": "0"}}' config_copy.json > modified_config.json
-
-configtxlator proto_encode --input config.json --type common.Config --output config.pb
-configtxlator proto_encode --input modified_config.json --type common.Config --output modified_config.pb
-configtxlator compute_update --channel_id ${CHANNEL_NAME} --original config.pb --updated modified_config.pb --output config_update.pb
-
-configtxlator proto_decode --input config_update.pb --type common.ConfigUpdate --output config_update.json
-echo '{"payload":{"header":{"channel_header":{"channel_id":"'$CHANNEL_NAME'", "type":2}},"data":{"config_update":'$(cat config_update.json)'}}}' | jq . > config_update_in_envelope.json
-configtxlator proto_encode --input config_update_in_envelope.json --type common.Envelope --output config_update_in_envelope.pb
-
-cd ..
-
-peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
-sleep 2
-
-echo "—---------------Join dealer peer1 to the channel—-------------"
-
-export CORE_PEER_LOCALMSPID=dealerMSP 
-export CORE_PEER_ADDRESS=localhost:9053
-export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/dealer.agri.com/peers/peer1.dealer.agri.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/dealer.agri.com/users/Admin@dealer.agri.com/msp
-
-echo ${FABRIC_CFG_PATH}
-sleep 2
-peer channel join -b ${PWD}/channel-artifacts/${CHANNEL_NAME}.block
-sleep 3
-
-echo "-----channel List----"
-peer channel list
-
-# echo "—---------------install chaincode in dealer peer—-------------"
-
-# peer lifecycle chaincode install basic.tar.gz
-# sleep 3
-
-# peer lifecycle chaincode queryinstalled
-
-# echo "—---------------Approve chaincode in dealer peer—-------------"
-
-# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
-# sleep 1
-
-
-export CORE_PEER_LOCALMSPID=buyerMSP 
+export CORE_PEER_LOCALMSPID=market2MSP 
 export CORE_PEER_ADDRESS=localhost:11051 
-export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/buyer.agri.com/peers/peer0.buyer.agri.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/buyer.agri.com/users/Admin@buyer.agri.com/msp
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/market2.agri.com/peers/peer0.market2.agri.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/market2.agri.com/users/Admin@market2.agri.com/msp
 
-echo "—---------------Join buyer peer to the channel—-------------"
+echo "—---------------Join market2 peer to the channel—-------------"
 
 peer channel join -b ${PWD}/channel-artifacts/$CHANNEL_NAME.block
 sleep 1
 peer channel list
 
-echo "—-------------buyer anchor peer update—-----------"
+echo "—-------------market2 anchor peer update—-----------"
 
 
 peer channel fetch config ${PWD}/channel-artifacts/config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA
@@ -250,7 +252,7 @@ jq '.data.data[0].payload.data.config' config_block.json > config.json
 
 cp config.json config_copy.json
 
-jq '.channel_group.groups.Application.groups.buyerMSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.buyer.agri.com","port": 11051}]},"version": "0"}}' config_copy.json > modified_config.json
+jq '.channel_group.groups.Application.groups.market2MSP.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "peer0.market2.agri.com","port": 11051}]},"version": "0"}}' config_copy.json > modified_config.json
 
 configtxlator proto_encode --input config.json --type common.Config --output config.pb
 configtxlator proto_encode --input modified_config.json --type common.Config --output modified_config.pb
@@ -265,25 +267,25 @@ cd ..
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
 sleep 1
 
-# echo "—---------------install chaincode in buyer peer—-------------"
+# echo "—---------------install chaincode in market2 peer—-------------"
 
 # peer lifecycle chaincode install basic.tar.gz
 # sleep 3
 
 # peer lifecycle chaincode queryinstalled
 
-# echo "—---------------Approve chaincode in buyer peer—-------------"
+# echo "—---------------Approve chaincode in market2 peer—-------------"
 
 # peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
 # sleep 1
 
 
-# echo "—---------------Commit chaincode in buyer peer—-------------"
+# echo "—---------------Commit chaincode in market2 peer—-------------"
 
 
 # peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --output json
 
-# peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --peerAddresses localhost:7051 --tlsRootCertFiles $manufacturer_PEER_TLSROOTCERT --peerAddresses localhost:9051 --tlsRootCertFiles $dealer_PEER_TLSROOTCERT
+# peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --peerAddresses localhost:7051 --tlsRootCertFiles $manufacturer_PEER_TLSROOTCERT --peerAddresses localhost:9051 --tlsRootCertFiles $distributer_PEER_TLSROOTCERT
 # sleep 1
 
 # peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name basic --cafile $ORDERER_CA
