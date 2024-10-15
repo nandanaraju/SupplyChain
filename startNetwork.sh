@@ -225,6 +225,8 @@ cd ..
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
 peer channel getinfo -c $CHANNEL_NAME
 sleep 1
+echo "-----channel List----"
+peer channel list
 
 
 
@@ -265,7 +267,14 @@ configtxlator proto_encode --input config_update_in_envelope.json --type common.
 cd ..
 
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
+peer channel getinfo -c $CHANNEL_NAME
+
 sleep 1
+echo "-----channel List----"
+peer channel list
+
+echo "—---------------Completed—-------------"
+
 
 # echo "—---------------install chaincode in market2 peer—-------------"
 
