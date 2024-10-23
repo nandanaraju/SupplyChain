@@ -91,29 +91,25 @@ cd ..
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
 sleep 1
 
-# echo "—---------------package chaincode—-------------"
+echo "—---------------package chaincode—-------------"
 
-
-# cp -r ../fabric-samples/asset-transfer-basic/chaincode-javascript ../Chaincode
-
-# peer lifecycle chaincode package basic.tar.gz --path ../Chaincode/chaincode-javascript/ --lang node --label basic_1.0
-
-
-# sleep 1
-
-# export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid basic.tar.gz)
-
-# echo "—---------------install chaincode in manufacturer peer—-------------"
-
-# peer lifecycle chaincode install basic.tar.gz
-# sleep 3
-
-# peer lifecycle chaincode queryinstalled
-
-# echo "—---------------Approve chaincode in manufacturer peer—-------------"
-
-# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+peer lifecycle chaincode package agripdt.tar.gz --path ${PWD}/../Chaincode/Supply-chain --lang node --label agripdt_1.0
 sleep 1
+
+echo "—---------------install chaincode in Manufacturer peer—-------------"
+
+peer lifecycle chaincode install agripdt.tar.gz
+sleep 3
+
+peer lifecycle chaincode queryinstalled
+sleep 1
+
+export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
+
+echo "—---------------Approve chaincode in Manufacturer peer—-------------"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0  --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 2
 
 
 
@@ -158,6 +154,21 @@ cd ..
 peer channel update -f ${PWD}/channel-artifacts/config_update_in_envelope.pb -c $CHANNEL_NAME -o localhost:7050  --ordererTLSHostnameOverride orderer.agri.com --tls --cafile $ORDERER_CA
 sleep 2
 
+echo "—---------------install chaincode in Distributer peer0—-------------"
+
+peer lifecycle chaincode install agripdt.tar.gz
+sleep 3
+
+peer lifecycle chaincode queryinstalled
+sleep 1
+
+export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
+
+echo "—---------------Approve chaincode in Distributer peero—-------------"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0  --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 2
+
 echo "—---------------Join distributer peer1 to the channel—-------------"
 
 export CORE_PEER_LOCALMSPID=distributerMSP 
@@ -173,17 +184,21 @@ sleep 3
 echo "-----channel List----"
 peer channel list
 
-# echo "—---------------install chaincode in distributer peer—-------------"
+echo "—---------------install chaincode in Distributer peer—-------------"
 
-# peer lifecycle chaincode install basic.tar.gz
-# sleep 3
+peer lifecycle chaincode install agripdt.tar.gz
+sleep 3
 
-# peer lifecycle chaincode queryinstalled
-
-# echo "—---------------Approve chaincode in distributer peer—-------------"
-
-# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+peer lifecycle chaincode queryinstalled
 sleep 1
+
+export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
+
+echo "—---------------Approve chaincode in Distributer peer—-------------"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0  --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 2
+
 
 export CORE_PEER_LOCALMSPID=market1MSP
 export CORE_PEER_TLS_ENABLED=true
@@ -227,6 +242,22 @@ peer channel getinfo -c $CHANNEL_NAME
 sleep 1
 echo "-----channel List----"
 peer channel list
+
+echo "—---------------install chaincode in Market1 peer—-------------"
+
+peer lifecycle chaincode install agripdt.tar.gz
+sleep 3
+
+peer lifecycle chaincode queryinstalled
+sleep 1
+
+export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
+
+echo "—---------------Approve chaincode in Market1 peer—-------------"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0  --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 2
+
 
 
 
@@ -276,27 +307,26 @@ peer channel list
 echo "—---------------Completed—-------------"
 
 
-# echo "—---------------install chaincode in market2 peer—-------------"
+echo "—---------------install chaincode in market2 peer—-------------"
 
-# peer lifecycle chaincode install basic.tar.gz
-# sleep 3
+peer lifecycle chaincode install agripdt.tar.gz
+sleep 3
 
-# peer lifecycle chaincode queryinstalled
+peer lifecycle chaincode queryinstalled
 
-# echo "—---------------Approve chaincode in market2 peer—-------------"
+echo "—---------------Approve chaincode in market2 peer—-------------"
 
-# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
-# sleep 1
-
-
-# echo "—---------------Commit chaincode in market2 peer—-------------"
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+sleep 1
 
 
-# peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --output json
+echo "—---------------Commit chaincode in market2 peer—-------------"
 
-# peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name basic --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --peerAddresses localhost:7051 --tlsRootCertFiles $manufacturer_PEER_TLSROOTCERT --peerAddresses localhost:9051 --tlsRootCertFiles $distributer_PEER_TLSROOTCERT
-# sleep 1
 
-# peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name basic --cafile $ORDERER_CA
+peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name Supply-chain --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --output json
 
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0 --sequence 1 --tls --cafile $ORDERER_CA --peerAddresses localhost:7051 --tlsRootCertFiles $manufacturer_PEER_TLSROOTCERT --peerAddresses localhost:9051 --tlsRootCertFiles $distributer_PEER_TLSROOTCERT --peerAddresses localhost:8051 --tlsRootCertFiles $market1_PEER_TLSROOTCERT --peerAddresses localhost:11051 --tlsRootCertFiles $market2_PEER_TLSROOTCERT
+sleep 1
+
+peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name Supply-chain --cafile $ORDERER_CA
 
