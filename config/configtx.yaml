@@ -32,6 +32,23 @@ Organizations:
       Endorsement:
         Type: Signature
         Rule: "OR('manufacturerMSP.peer')"
+  - &wholesaler
+    Name: wholesalerMSP
+    ID: wholesalerMSP
+    MSPDir: ../organizations/peerOrganizations/wholesaler.agri.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('wholesalerMSP.admin', 'wholesalerMSP.peer', 'wholesalerMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('wholesalerMSP.admin', 'wholesalerMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('wholesalerMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('wholesalerMSP.peer')"
   - &distributer
     Name: distributerMSP
     ID: distributerMSP
@@ -49,40 +66,23 @@ Organizations:
       Endorsement:
         Type: Signature
         Rule: "OR('distributerMSP.peer')"
-  - &market1
-    Name: market1MSP
-    ID: market1MSP
-    MSPDir: ../organizations/peerOrganizations/market1.agri.com/msp
+  - &market
+    Name: marketMSP
+    ID: marketMSP
+    MSPDir: ../organizations/peerOrganizations/market.agri.com/msp
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('market1MSP.admin', 'market1MSP.peer', 'market1MSP.client')"
+        Rule: "OR('marketMSP.admin', 'marketMSP.peer', 'marketMSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('market1MSP.admin', 'market1MSP.client')"
+        Rule: "OR('marketMSP.admin', 'marketMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('market1MSP.admin')"
+        Rule: "OR('marketMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('market1MSP.peer')"
-  - &market2
-    Name: market2MSP
-    ID: market2MSP
-    MSPDir: ../organizations/peerOrganizations/market2.agri.com/msp
-    Policies:
-      Readers:
-        Type: Signature
-        Rule: "OR('market2MSP.admin', 'market2MSP.peer', 'market2MSP.client')"
-      Writers:
-        Type: Signature
-        Rule: "OR('market2MSP.admin', 'market2MSP.client')"
-      Admins:
-        Type: Signature
-        Rule: "OR('market2MSP.admin')"
-      Endorsement:
-        Type: Signature
-        Rule: "OR('market2MSP.peer')"
+        Rule: "OR('marketMSP.peer')"
 
 
 Capabilities:  
@@ -170,7 +170,7 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *manufacturer
-        - *market1
         - *distributer
-        - *market2
+        - *wholesaler
+        - *market
       Capabilities: *ApplicationCapabilities

@@ -3,10 +3,10 @@ version: '3.7'
 volumes:
   orderer.agri.com:
   peer0.manufacturer.agri.com:
+  peer0.wholesaler.agri.com:
+  peer1.wholesaler.agri.com:
   peer0.distributer.agri.com:
-  peer1.distributer.agri.com:
-  peer0.market1.agri.com:
-  peer0.market2.agri.com:
+  peer0.market.agri.com:
 
 
 
@@ -133,8 +133,8 @@ services:
     networks:
       - test
 
-  peer0.distributer.agri.com:
-    container_name: peer0.distributer.agri.com
+  peer0.wholesaler.agri.com:
+    container_name: peer0.wholesaler.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -149,18 +149,18 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.distributer.agri.com
-      - CORE_PEER_ADDRESS=peer0.distributer.agri.com:9051
+      - CORE_PEER_ID=peer0.wholesaler.agri.com
+      - CORE_PEER_ADDRESS=peer0.wholesaler.agri.com:9051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.distributer.agri.com:9052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.wholesaler.agri.com:9052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.distributer.agri.com:9051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.distributer.agri.com:9051
-      - CORE_PEER_LOCALMSPID=distributerMSP
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.wholesaler.agri.com:9051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.wholesaler.agri.com:9051
+      - CORE_PEER_LOCALMSPID=wholesalerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.distributer.agri.com:9445
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.wholesaler.agri.com:9445
       - CORE_METRICS_PROVIDER=prometheus
-      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0distributer"}
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0wholesaler"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
@@ -168,8 +168,8 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ../organizations/peerOrganizations/distributer.agri.com/peers/peer0.distributer.agri.com:/etc/hyperledger/fabric
-      - peer0.distributer.agri.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/wholesaler.agri.com/peers/peer0.wholesaler.agri.com:/etc/hyperledger/fabric
+      - peer0.wholesaler.agri.com:/var/hyperledger/production
     working_dir: /root
     command: peer node start
     ports:
@@ -193,8 +193,8 @@ services:
     networks:
       - test
 
-  peer1.distributer.agri.com:  # Added peer1 for distributer organization
-    container_name: peer1.distributer.agri.com
+  peer1.wholesaler.agri.com:  # Added peer1 for wholesaler organization
+    container_name: peer1.wholesaler.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -208,15 +208,15 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer1.distributer.agri.com
-      - CORE_PEER_ADDRESS=peer1.distributer.agri.com:9053
+      - CORE_PEER_ID=peer1.wholesaler.agri.com
+      - CORE_PEER_ADDRESS=peer1.wholesaler.agri.com:9053
       - CORE_PEER_LISTENADDRESS=0.0.0.0:9053
-      - CORE_PEER_CHAINCODEADDRESS=peer1.distributer.agri.com:9054
+      - CORE_PEER_CHAINCODEADDRESS=peer1.wholesaler.agri.com:9054
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9054
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.distributer.agri.com:9053
-      - CORE_PEER_LOCALMSPID=distributerMSP
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.wholesaler.agri.com:9053
+      - CORE_PEER_LOCALMSPID=wholesalerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer1.distributer.agri.com:9445
+      - CORE_OPERATIONS_LISTENADDRESS=peer1.wholesaler.agri.com:9445
       - CORE_METRICS_PROVIDER=prometheus
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb4:5984
@@ -224,8 +224,8 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ../organizations/peerOrganizations/distributer.agri.com/peers/peer1.distributer.agri.com:/etc/hyperledger/fabric
-      - peer1.distributer.agri.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/wholesaler.agri.com/peers/peer1.wholesaler.agri.com:/etc/hyperledger/fabric
+      - peer1.wholesaler.agri.com:/var/hyperledger/production
     depends_on:
       - couchdb4
     ports:
@@ -247,8 +247,8 @@ services:
     networks:
       - test
 
-  peer0.market1.agri.com:
-    container_name: peer0.market1.agri.com
+  peer0.distributer.agri.com:
+    container_name: peer0.distributer.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -262,18 +262,18 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.market1.agri.com
-      - CORE_PEER_ADDRESS=peer0.market1.agri.com:8051
+      - CORE_PEER_ID=peer0.distributer.agri.com
+      - CORE_PEER_ADDRESS=peer0.distributer.agri.com:8051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.market1.agri.com:8052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.distributer.agri.com:8052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.market1.agri.com:8051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.market1.agri.com:8051
-      - CORE_PEER_LOCALMSPID=market1MSP
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.distributer.agri.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.distributer.agri.com:8051
+      - CORE_PEER_LOCALMSPID=distributerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.market1.agri.com:9447
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.distributer.agri.com:9447
       - CORE_METRICS_PROVIDER=prometheus
-      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0market1"}
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0distributer"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
@@ -281,8 +281,8 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ../organizations/peerOrganizations/market1.agri.com/peers/peer0.market1.agri.com:/etc/hyperledger/fabric
-      - peer0.market1.agri.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/distributer.agri.com/peers/peer0.distributer.agri.com:/etc/hyperledger/fabric
+      - peer0.distributer.agri.com:/var/hyperledger/production
     depends_on:
       - couchdb2
     working_dir: /root
@@ -306,8 +306,8 @@ services:
     networks:
       - test
 
-  peer0.market2.agri.com:
-    container_name: peer0.market2.agri.com
+  peer0.market.agri.com:
+    container_name: peer0.market.agri.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -324,18 +324,18 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
-      - CORE_PEER_ID=peer0.market2.agri.com
-      - CORE_PEER_ADDRESS=peer0.market2.agri.com:11051
+      - CORE_PEER_ID=peer0.market.agri.com
+      - CORE_PEER_ADDRESS=peer0.market.agri.com:11051
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
       - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.market2.agri.com:11052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.market.agri.com:11052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.market2.agri.com:11051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.market2.agri.com:11051
-      - CORE_PEER_LOCALMSPID=market2MSP
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.market2.agri.com:9446
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.market.agri.com:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.market.agri.com:11051
+      - CORE_PEER_LOCALMSPID=marketMSP
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.market.agri.com:9446
       - CORE_METRICS_PROVIDER=prometheus
-      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0market2"}
+      - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0market"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s  
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
@@ -345,8 +345,8 @@ services:
       - couchdb3    
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock      
-      - ../organizations/peerOrganizations/market2.agri.com/peers/peer0.market2.agri.com:/etc/hyperledger/fabric        
-      - peer0.market2.agri.com:/var/hyperledger/production
+      - ../organizations/peerOrganizations/market.agri.com/peers/peer0.market.agri.com:/etc/hyperledger/fabric        
+      - peer0.market.agri.com:/var/hyperledger/production
     working_dir: /root
     command: peer node start
     ports:
@@ -374,9 +374,9 @@ services:
       - ../organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/organizations
     depends_on:
       - peer0.manufacturer.agri.com
-      - peer0.market1.agri.com
       - peer0.distributer.agri.com
-      - peer1.distributer.agri.com
-      - peer0.market2.agri.com
+      - peer0.wholesaler.agri.com
+      - peer1.wholesaler.agri.com
+      - peer0.market.agri.com
     networks:
       - test
