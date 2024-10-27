@@ -184,20 +184,20 @@ sleep 3
 echo "-----channel List----"
 peer channel list
 
-echo "—---------------install chaincode in Distributer peer—-------------"
+# echo "—---------------install chaincode in wholesaler peer—-------------"
 
-peer lifecycle chaincode install agripdt.tar.gz
-sleep 3
+# peer lifecycle chaincode install agripdt.tar.gz
+# sleep 3
 
-peer lifecycle chaincode queryinstalled
-sleep 1
+# peer lifecycle chaincode queryinstalled
+# sleep 1
 
-export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
+# export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
 
-echo "—---------------Approve chaincode in Distributer peer—-------------"
+# echo "—---------------Approve chaincode in wholesaler peer—-------------"
 
-peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0 --collections-config ../Chaincode/Supply-chain/collection-automobile.json --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
-sleep 2
+# peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0 --collections-config ../Chaincode/Supply-chain/collection-automobile.json --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
+# sleep 2
 
 
 export CORE_PEER_LOCALMSPID=distributerMSP
@@ -243,7 +243,7 @@ sleep 1
 echo "-----channel List----"
 peer channel list
 
-echo "—---------------install chaincode in Market1 peer—-------------"
+echo "—---------------install chaincode in distributer peer—-------------"
 
 peer lifecycle chaincode install agripdt.tar.gz
 sleep 3
@@ -253,7 +253,7 @@ sleep 1
 
 export CC_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid agripdt.tar.gz)
 
-echo "—---------------Approve chaincode in Market1 peer—-------------"
+echo "—---------------Approve chaincode in distributer peer—-------------"
 
 peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.agri.com --channelID $CHANNEL_NAME --name Supply-chain --version 1.0 --collections-config ../Chaincode/Supply-chain/collection-automobile.json --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA --waitForEvent
 sleep 2
